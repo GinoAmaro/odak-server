@@ -48,6 +48,12 @@ if (isset($_GET["agregarUsuario"])) {
     $correo = $data->correo;
     $contrasena = $data->contrasena;
 
+    $sqlodak = mysqli_query($conexionBD, "SELECT * FROM usuario WHERE correo='$correo'");
+    if (mysqli_num_rows($sqlodak) > 0) {
+        echo json_encode(["mensaje" => 'este correo ya existe']);
+        exit();
+    }
+
     if (($nombre != "") && ($apellidos != "") && ($correo != "") && ($contrasena != "")) {
         $sqlodak = mysqli_query($conexionBD, "INSERT INTO usuario (nombre,apellidos,correo,contrasena,empresa,tipo,estado,token) VALUES('$nombre','$apellidos','$correo',md5('$contrasena'),null,2,1,null)");
         echo json_encode(["success" => 0]);
