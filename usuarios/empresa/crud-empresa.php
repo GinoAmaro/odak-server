@@ -12,7 +12,6 @@ if (isset($_GET["categoria"])) {
         echo json_encode($categoria);
         exit();
     } else {
-        // echo json_encode(["id" => 0]);
         exit();
     }
     exit();
@@ -27,6 +26,7 @@ if (isset($_GET["registrarEmpresa"])) {
     $direccion = $data->direccion;
     $telefono = $data->telefono;
     $correo = $data->correo;
+    $titulo_descripcion = $data->titulo_descripcion;
     $descripcion = $data->descripcion;
     $imagen_logo = $data->imagen_logo;
     $imagen_fondo = $data->imagen_fondo;
@@ -35,8 +35,8 @@ if (isset($_GET["registrarEmpresa"])) {
     $whatsapp = $data->whatsapp;
     $instagram = $data->instagram;
     $linkedin = $data->linkedin;
-    $sql = "INSERT INTO `empresa`( `rut`, `nombre_fantasia`, `categoria`, `comuna`, `direccion`, `telefono`, `correo`, `descripcion`, `imagen_logo`, `imagen_fondo`, `twitter`, `facebook`, `whatsapp`, `instagram`, `linkedin`)
-     VALUES ('$rut','$nombre_fantasia',$categoria,$comuna,'$direccion','$telefono','$correo','$descripcion','$imagen_logo','$imagen_fondo','$twitter','$facebook','$whatsapp','$instagram','$linkedin')";
+    $sql = "INSERT INTO `empresa`( `rut`, `nombre_fantasia`, `categoria`, `comuna`, `direccion`, `telefono`, `correo`,`titulo_descripcion`, `descripcion`, `imagen_logo`, `imagen_fondo`, `twitter`, `facebook`, `whatsapp`, `instagram`, `linkedin`)
+     VALUES ('$rut','$nombre_fantasia',$categoria,$comuna,'$direccion','$telefono','$correo','$titulo_descripcion','$descripcion','$imagen_logo','$imagen_fondo','$twitter','$facebook','$whatsapp','$instagram','$linkedin')";
 
     if ($rut === '') {
         echo json_encode(["mensaje" => 'Falta el rut']);
@@ -58,7 +58,10 @@ if (isset($_GET["registrarEmpresa"])) {
 }
 
 if (isset($_GET["consultarEmpresa"])) {
-    $sqlodak = mysqli_query($conexionBD, "SELECT * FROM empresa WHERE id=" . $_GET["consultarEmpresa"]);
+    $consulta = "SELECT e.id,e.rut,e.nombre_fantasia,c.descripcion as 'categoria',co.descripcion as 'comuna' ,e.direccion,e.telefono,e.correo,e.titulo_descripcion,e.descripcion,e.imagen_logo,e.imagen_fondo,e.twitter,e.facebook,e.whatsapp,e.instagram,e.linkedin
+    FROM empresa e, categoria c, comuna co
+    WHERE (e.categoria=c.id) AND (e.comuna=co.id) AND e.id=" . $_GET["consultarEmpresa"];
+    $sqlodak = mysqli_query($conexionBD, $consulta);
     if (mysqli_num_rows($sqlodak) > 0) {
         $planes = mysqli_fetch_all($sqlodak, MYSQLI_ASSOC);
         echo json_encode($planes);
@@ -68,7 +71,23 @@ if (isset($_GET["consultarEmpresa"])) {
     }
 }
 
-if (isset($_GET["editarEmpresa"])) {
+// if (isset($_GET["editarEmpresa"])) {
+// }
 
+if (isset($_GET["cotizarEmpresa"])) {
+    $data = json_decode(file_get_contents("php://input"));
+    $empresa = $data->empresa;
+    $cliente = $data->cliente;
+    $correo_cliente = $data->correo_cliente;
+    $telefono_cliente = $data->telefono_cliente;
+    $solicitud_cliente = $data->solicitud_cliente;
 
+    $sql = "INSERT INTO cotizacion (empresa,cliente,correo_cliente,telefono_cliente,solicitud_cliente)
+            VALUES ($empresa,'$cliente','$correo_cliente','$telefono_cliente','$solicitud_cliente')";
+    $sqlodak = mysqli_query($conexionBD, $sql);
+    if ($sqlodak) {
+        echo json_encode(["mensaje" => 'Cotización Enviada']);
+    } else {
+        echo json_encode(["mensaje" => 'Error en la sintaxis']);
+    }
 }
