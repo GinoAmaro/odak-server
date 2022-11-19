@@ -63,16 +63,58 @@ if (isset($_GET["consultarEmpresa"])) {
     WHERE (e.categoria=c.id) AND (e.comuna=co.id) AND e.id=" . $_GET["consultarEmpresa"];
     $sqlodak = mysqli_query($conexionBD, $consulta);
     if (mysqli_num_rows($sqlodak) > 0) {
-        $planes = mysqli_fetch_all($sqlodak, MYSQLI_ASSOC);
-        echo json_encode($planes);
+        $empresa = mysqli_fetch_all($sqlodak, MYSQLI_ASSOC);
+        echo json_encode($empresa);
         exit();
     } else {
         echo json_encode(["mensaje" => 'no se encontró la empresa']);
     }
 }
 
-// if (isset($_GET["editarEmpresa"])) {
-// }
+if (isset($_GET["consultarParaEditar"])) {
+    $consulta = "SELECT * FROM empresa WHERE id=" . $_GET["consultarParaEditar"];
+    $sqlodak = mysqli_query($conexionBD, $consulta);
+    if (mysqli_num_rows($sqlodak) > 0) {
+        $empresa = mysqli_fetch_all($sqlodak, MYSQLI_ASSOC);
+        echo json_encode($empresa);
+        exit();
+    } else {
+        echo json_encode(["mensaje" => 'no se encontró la empresa']);
+    }
+}
+
+if (isset($_GET["actualizarEmpresa"])) {
+    $data = json_decode(file_get_contents("php://input"));
+    $id = $data->id;
+    $rut = $data->rut;
+    $nombre_fantasia = $data->nombre_fantasia;
+    $categoria = $data->categoria;
+    $comuna = $data->comuna;
+    $direccion = $data->direccion;
+    $telefono = $data->telefono;
+    $correo = $data->correo;
+    $titulo_descripcion = $data->titulo_descripcion;
+    $descripcion = $data->descripcion;
+    $imagen_logo = $data->imagen_logo;
+    $imagen_fondo = $data->imagen_fondo;
+    $twitter = $data->twitter;
+    $facebook = $data->facebook;
+    $whatsapp = $data->whatsapp;
+    $instagram = $data->instagram;
+    $linkedin = $data->linkedin;
+    $sql = "UPDATE empresa SET rut='$rut', nombre_fantasia='$nombre_fantasia', categoria=$categoria, comuna=$comuna, direccion='$direccion', telefono='$telefono',
+            correo='$correo', titulo_descripcion='$titulo_descripcion', descripcion='$descripcion', imagen_logo='$imagen_logo', imagen_fondo='$imagen_fondo',
+            twitter='$twitter', facebook='$facebook', whatsapp='$whatsapp', instagram='$instagram', linkedin='$linkedin'
+            WHERE id=$id";
+    $sqlodak = mysqli_query($conexionBD, $sql);
+    if ($sqlodak) {
+        echo json_encode(["mensaje" => 'Cambios realizados']);
+    } else {
+        echo json_encode(["mensaje" => 'Error en la sintaxis']);
+    }
+
+    exit();
+}
 
 if (isset($_GET["cotizarEmpresa"])) {
     $data = json_decode(file_get_contents("php://input"));
@@ -89,5 +131,65 @@ if (isset($_GET["cotizarEmpresa"])) {
         echo json_encode(["mensaje" => 'Cotización Enviada']);
     } else {
         echo json_encode(["mensaje" => 'Error en la sintaxis']);
+    }
+}
+
+if (isset($_GET["landingEmpresa"])) {
+    $consulta = "SELECT id, imagen_logo, nombre_fantasia FROM empresa ORDER BY id DESC LIMIT 4;";
+    $sqlodak = mysqli_query($conexionBD, $consulta);
+    if (mysqli_num_rows($sqlodak) > 0) {
+        $empresa = mysqli_fetch_all($sqlodak, MYSQLI_ASSOC);
+        echo json_encode($empresa);
+        exit();
+    } else {
+        echo json_encode(["mensaje" => 'no se encontró la empresa']);
+    }
+}
+
+if (isset($_GET["grillaEmpresa"])) {
+    $consulta = "SELECT * FROM empresa WHERE descripcion LIKE '%" . $_GET["grillaEmpresa"] . "%'";
+    $sqlodak = mysqli_query($conexionBD, $consulta);
+    if (mysqli_num_rows($sqlodak) > 0) {
+        $empresa = mysqli_fetch_all($sqlodak, MYSQLI_ASSOC);
+        echo json_encode($empresa);
+        exit();
+    } else {
+        echo json_encode(["mensaje" => 'referencias no encontradas']);
+    }
+}
+
+if (isset($_GET["agregarReferencia"])) {
+    $data = json_decode(file_get_contents("php://input"));
+    $empresa = $data->empresa;
+    $descripcion = $data->descripcion;
+
+    $sql = "INSERT INTO referencias (empresa,descripcion) VALUES ($empresa,'$descripcion')";
+    $sqlodak = mysqli_query($conexionBD, $sql);
+    if ($sqlodak) {
+        echo json_encode(["mensaje" => 'Referencia Agregada']);
+    } else {
+        echo json_encode(["mensaje" => 'Error en la sintaxis']);
+    }
+}
+
+if (isset($_GET["buscarReferencia"])) {
+    $consulta = "SELECT * FROM referencias WHERE empresa=" . $_GET["buscarReferencia"];
+    $sqlodak = mysqli_query($conexionBD, $consulta);
+    if (mysqli_num_rows($sqlodak) > 0) {
+        $empresa = mysqli_fetch_all($sqlodak, MYSQLI_ASSOC);
+        echo json_encode($empresa);
+        exit();
+    } else {
+        echo json_encode(["mensaje" => 'referencias no encontradas']);
+    }
+}
+
+if (isset($_GET["borrarReferencia"])) {
+    $sqlodak = mysqli_query($conexionBD, "DELETE FROM referencias WHERE id=" . $_GET["borrarReferencia"]);
+    if ($sqlodak) {
+        echo json_encode(["success" => 1]);
+        exit();
+    } else {
+        echo json_encode(["success" => 0]);
     }
 }
