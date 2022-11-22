@@ -8,6 +8,8 @@ use Firebase\JWT\Key;
 require('../conexion.php');
 $conexionBD = Conectar();
 
+require('correo.php');
+
 
 if (isset($_GET["login"])) {
     $data = json_decode(file_get_contents("php://input"));
@@ -22,6 +24,7 @@ if (isset($_GET["login"])) {
     if (mysqli_num_rows($sqlodak) > 0) {
         $login = mysqli_fetch_all($sqlodak, MYSQLI_ASSOC);
         $id = $login[0]['id'];
+        $usuario = $login[0]['nombre'] . ' ' . $login[0]['apellidos'];
         $payload = [
             'iat' => 1356999924,
             'exp' => time() + 10000,
@@ -30,6 +33,7 @@ if (isset($_GET["login"])) {
         $key = 'ODAK';
         $jwt = JWT::encode($payload, $key, 'HS256');
         $sqlodak = mysqli_query($conexionBD, "UPDATE usuario SET token='" . $jwt . "' WHERE id='$id'");
+        echo enviarCorreo($correo, $jwt, $usuario);
         $sqlodak = mysqli_query($conexionBD, "SELECT * FROM usuario WHERE correo='" . $correo . "'");
         mysqli_num_rows($sqlodak);
         $login = mysqli_fetch_all($sqlodak, MYSQLI_ASSOC);
@@ -82,5 +86,17 @@ if (isset($_GET["idUsuario"])) {
         echo json_encode($idUsuario);
     } else {
         echo json_encode([["mensaje" => 'validar']]);
+    }
+}
+
+if (isset($_GET["validarToken"])) {
+
+    $sqlodak = mysqli_query($conexionBD, "SELECT * FROM usuario WHERE token='" . $_GET["validarToken"] . "'");
+    if (mysqli_num_rows($sqlodak) > 0) {
+        $token = mysqli_fetch_all($sqlodak, MYSQLI_ASSOC);
+        echo json_encode($token);
+        exit();
+    } else {
+        echo json_encode(["mensaje" => 'el código no es válido']);
     }
 }
