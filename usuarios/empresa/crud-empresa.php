@@ -147,7 +147,12 @@ if (isset($_GET["landingEmpresa"])) {
 }
 
 if (isset($_GET["grillaEmpresa"])) {
-    $consulta = "SELECT * FROM empresa WHERE descripcion LIKE '%" . $_GET["grillaEmpresa"] . "%'";
+    $consulta = "SELECT e.id as 'id', e.rut as 'rut', e.nombre_fantasia as 'nombre_fantasia', e.categoria as 'categoria', e.comuna as 'comuna', e.direccion as 'direccion',
+                 e.telefono as 'telefono', e.correo as 'correo', e.titulo_descripcion as 'titulo_descripcion', e.descripcion as 'descripcion', e.twitter as 'twitter',
+                 e.facebook as 'facebook', e.whatsapp as 'whatsapp', e.instagram as 'instagram', e.linkedin as 'linkedin', e.imagen_logo as 'imagen_logo', e.imagen_fondo as 'imagen_fondo'
+                 FROM referencias r,empresa e
+                 WHERE (r.empresa=e.id) AND ((r.descripcion like '%". $_GET["grillaEmpresa"] ."%') OR (e.descripcion like '%". $_GET["grillaEmpresa"] ."%'))
+                 GROUP BY e.id;";
     $sqlodak = mysqli_query($conexionBD, $consulta);
     if (mysqli_num_rows($sqlodak) > 0) {
         $empresa = mysqli_fetch_all($sqlodak, MYSQLI_ASSOC);
