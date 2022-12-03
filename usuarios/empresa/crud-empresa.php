@@ -146,6 +146,18 @@ if (isset($_GET["landingEmpresa"])) {
     }
 }
 
+if (isset($_GET["contarCotizacion"])) {
+    $consulta = "SELECT empresa, COUNT(ID) AS 'cantidad' FROM cotizacion WHERE empresa=".$_GET["contarCotizacion"].";";
+    $sqlodak = mysqli_query($conexionBD, $consulta);
+    if (mysqli_num_rows($sqlodak) > 0) {
+        $empresa = mysqli_fetch_all($sqlodak, MYSQLI_ASSOC);
+        echo json_encode($empresa);
+        exit();
+    } else {
+        echo json_encode(["mensaje" => 'no se encontró la empresa']);
+    }
+}
+
 if (isset($_GET["grillaEmpresa"])) {
     $consulta = "SELECT e.id as 'id', e.rut as 'rut', e.nombre_fantasia as 'nombre_fantasia', e.categoria as 'categoria', e.comuna as 'comuna', e.direccion as 'direccion',
                  e.telefono as 'telefono', e.correo as 'correo', e.titulo_descripcion as 'titulo_descripcion', e.descripcion as 'descripcion', e.twitter as 'twitter',
