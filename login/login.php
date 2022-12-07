@@ -33,7 +33,7 @@ if (isset($_GET["login"])) {
         $key = 'ODAK';
         $jwt = JWT::encode($payload, $key, 'HS256');
         $sqlodak = mysqli_query($conexionBD, "UPDATE usuario SET token='" . $jwt . "' WHERE id='$id'");
-        echo enviarCorreo($correo, $jwt, $usuario);
+        echo enviarToken($correo, $jwt, $usuario);
         $sqlodak = mysqli_query($conexionBD, "SELECT * FROM usuario WHERE correo='" . $correo . "'");
         mysqli_num_rows($sqlodak);
         $login = mysqli_fetch_all($sqlodak, MYSQLI_ASSOC);

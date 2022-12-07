@@ -3,6 +3,8 @@
 require('../../conexion.php');
 $conexionBD = Conectar();
 
+require('../../login/correo.php');
+
 if (isset($_GET["categoria"])) {
     $data = json_decode(file_get_contents("php://input"));
     $consulta = $_GET["categoria"];
@@ -123,14 +125,33 @@ if (isset($_GET["cotizarEmpresa"])) {
     $correo_cliente = $data->correo_cliente;
     $telefono_cliente = $data->telefono_cliente;
     $solicitud_cliente = $data->solicitud_cliente;
+    $fecha = Hora($fecha);
 
-    $sql = "INSERT INTO cotizacion (empresa,cliente,correo_cliente,telefono_cliente,solicitud_cliente)
-            VALUES ($empresa,'$cliente','$correo_cliente','$telefono_cliente','$solicitud_cliente')";
+    $sql = "INSERT INTO cotizacion (empresa,cliente,correo_cliente,telefono_cliente,solicitud_cliente,fecha_solicitud,estado,decision)
+            VALUES ($empresa,'$cliente','$correo_cliente','$telefono_cliente','$solicitud_cliente','$fecha',0,'Pendiente')";
     $sqlodak = mysqli_query($conexionBD, $sql);
     if ($sqlodak) {
         echo json_encode(["mensaje" => 'Cotización Enviada']);
     } else {
         echo json_encode(["mensaje" => 'Error en la sintaxis']);
+        exit();
+    }
+
+    $sqlseguimiento = "INSERT INTO seguimiento (cotizacion,fecha,descripcion,estado)
+                       VALUES ((SELECT MAX(id) FROM cotizacion WHERE empresa=$empresa),'$fecha','Cotización solicitada','Pendiente')";
+    $sqlodakSeguimiento = mysqli_query($conexionBD, $sqlseguimiento);
+
+    $sqlodakCorreo = mysqli_query($conexionBD, "SELECT c.id as 'id',c.correo_cliente as 'correo_cliente',c.solicitud_cliente as 'solicitud_cliente',c.cliente as 'cliente'
+                                                FROM seguimiento s,cotizacion c
+                                                WHERE (c.id=s.cotizacion) AND cotizacion=(SELECT MAX(id) FROM cotizacion WHERE empresa=$empresa)");
+    if (mysqli_num_rows($sqlodakCorreo) > 0) {
+        $respuesta = mysqli_fetch_all($sqlodakCorreo, MYSQLI_ASSOC);
+        $id_seguimiento = $respuesta[0]['id'];
+        $correo = $respuesta[0]['correo_cliente'];
+        $descripcion = $respuesta[0]['solicitud_cliente'];
+        $clienteCotizacion = $respuesta[0]['cliente'];
+        echo enviarSeguimiento($correo, $clienteCotizacion, $id_seguimiento, $descripcion);
+        exit();
     }
 }
 
@@ -143,11 +164,12 @@ if (isset($_GET["landingEmpresa"])) {
         exit();
     } else {
         echo json_encode(["mensaje" => 'no se encontró la empresa']);
+        exit();
     }
 }
 
 if (isset($_GET["contarCotizacion"])) {
-    $consulta = "SELECT empresa, COUNT(ID) AS 'cantidad' FROM cotizacion WHERE empresa=".$_GET["contarCotizacion"].";";
+    $consulta = "SELECT empresa, COUNT(ID) AS 'cantidad' FROM cotizacion WHERE empresa=" . $_GET["contarCotizacion"] . ";";
     $sqlodak = mysqli_query($conexionBD, $consulta);
     if (mysqli_num_rows($sqlodak) > 0) {
         $empresa = mysqli_fetch_all($sqlodak, MYSQLI_ASSOC);
@@ -160,10 +182,10 @@ if (isset($_GET["contarCotizacion"])) {
 
 if (isset($_GET["grillaEmpresa"])) {
     $consulta = "SELECT e.id as 'id', e.rut as 'rut', e.nombre_fantasia as 'nombre_fantasia', e.categoria as 'categoria', e.comuna as 'comuna', e.direccion as 'direccion',
-                 e.telefono as 'telefono', e.correo as 'correo', e.titulo_descripcion as 'titulo_descripcion', e.descripcion as 'descripcion', e.twitter as 'twitter',
-                 e.facebook as 'facebook', e.whatsapp as 'whatsapp', e.instagram as 'instagram', e.linkedin as 'linkedin', e.imagen_logo as 'imagen_logo', e.imagen_fondo as 'imagen_fondo'
+                    e.telefono as 'telefono', e.correo as 'correo', e.titulo_descripcion as 'titulo_descripcion', e.descripcion as 'descripcion', e.twitter as 'twitter',
+                    e.facebook as 'facebook', e.whatsapp as 'whatsapp', e.instagram as 'instagram', e.linkedin as 'linkedin', e.imagen_logo as 'imagen_logo', e.imagen_fondo as 'imagen_fondo'
                  FROM referencias r,empresa e
-                 WHERE (r.empresa=e.id) AND ((r.descripcion like '%". $_GET["grillaEmpresa"] ."%') OR (e.descripcion like '%". $_GET["grillaEmpresa"] ."%'))
+                 WHERE ((r.descripcion like '%" . $_GET["grillaEmpresa"] . "%') OR (e.descripcion like '%" . $_GET["grillaEmpresa"] . "%'))
                  GROUP BY e.id;";
     $sqlodak = mysqli_query($conexionBD, $consulta);
     if (mysqli_num_rows($sqlodak) > 0) {
@@ -174,6 +196,7 @@ if (isset($_GET["grillaEmpresa"])) {
         echo json_encode(["mensaje" => 'referencias no encontradas']);
     }
 }
+
 
 if (isset($_GET["agregarReferencia"])) {
     $data = json_decode(file_get_contents("php://input"));
@@ -208,5 +231,58 @@ if (isset($_GET["borrarReferencia"])) {
         exit();
     } else {
         echo json_encode(["success" => 0]);
+    }
+}
+
+if (isset($_GET["listarCotizaciones"])) {
+    $consulta = "SELECT id,empresa,cliente,correo_cliente,telefono_cliente,solicitud_cliente,fecha_solicitud 
+                 FROM cotizacion WHERE (empresa=" . $_GET["listarCotizaciones"] . ") AND (estado=0) AND decision='Pendiente'";
+    $sqlodak = mysqli_query($conexionBD, $consulta);
+    if (mysqli_num_rows($sqlodak) > 0) {
+        $empresa = mysqli_fetch_all($sqlodak, MYSQLI_ASSOC);
+        echo json_encode($empresa);
+        exit();
+    } else {
+        echo json_encode(["mensaje" => 'no hay nuevas cotizaciones']);
+    }
+}
+
+if (isset($_GET["resolverCotizacion"])) {
+    $data = json_decode(file_get_contents("php://input"));
+    $id = $data->id;
+    $decision = $data->decision;
+
+    $desicion = "UPDATE cotizacion SET decision='$decision' WHERE id=$id";
+    $sqlodak = mysqli_query($conexionBD, $desicion);
+    if ($sqlodak) {
+        echo json_encode(["mensaje" => 'Solicitud Aceptada']);
+    } else {
+        echo json_encode(["mensaje" => 'Solicitud Rechazada']);
+    }
+}
+
+if (isset($_GET["buscarCotizacion"])) {
+    $consulta = "SELECT e.nombre_fantasia as 'nombre_fantasia', c.cliente as 'cliente', c.correo_cliente as 'correo_cliente', c.solicitud_cliente as 'solicitud_cliente', c.fecha_solicitud as 'fecha_solicitud'
+    FROM cotizacion c, empresa e
+    WHERE (c.empresa=e.id) AND (c.id=" . $_GET["buscarCotizacion"] . ")";
+    $sqlodak = mysqli_query($conexionBD, $consulta);
+    if (mysqli_num_rows($sqlodak) > 0) {
+        $empresa = mysqli_fetch_all($sqlodak, MYSQLI_ASSOC);
+        echo json_encode($empresa);
+        exit();
+    } else {
+        echo json_encode(["mensaje" => 'Numero de seguimiento no encontrado']);
+    }
+}
+
+if (isset($_GET["buscarSeguimiento"])) {
+    $consulta = "SELECT fecha, descripcion, estado FROM seguimiento WHERE cotizacion=".$_GET["buscarSeguimiento"];
+    $sqlodak = mysqli_query($conexionBD, $consulta);
+    if (mysqli_num_rows($sqlodak) > 0) {
+        $empresa = mysqli_fetch_all($sqlodak, MYSQLI_ASSOC);
+        echo json_encode($empresa);
+        exit();
+    } else {
+        echo json_encode(["mensaje" => 'Numero de seguimiento no encontrado']);
     }
 }

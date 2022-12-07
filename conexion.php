@@ -15,3 +15,10 @@ function Conectar()
     $conexionBD = new mysqli($servidor, $usuario, $contrasenia, $nombreBaseDatos);
     return $conexionBD;
 }
+
+function Hora($Fecha)
+{
+    date_default_timezone_set('America/Santiago');
+    $Fecha = date('Y-m-d G:i:s');
+    return $Fecha;
+}
