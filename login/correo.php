@@ -7,8 +7,6 @@ require 'PHPMail/Exception.php';
 require 'PHPMail/PHPMailer.php';
 require 'PHPMail/SMTP.php';
 
-$correoEmisor='emzero1@gmail.com';
-$ClaveEmail = '';
 
 function enviarToken($correo,$token,$usuario)
 {
@@ -22,13 +20,13 @@ function enviarToken($correo,$token,$usuario)
         $mail->isSMTP();                                            //Send using SMTP
         $mail->Host       = 'smtp.gmail.com';                     //Set the SMTP server to send through
         $mail->SMTPAuth   = true;                                   //Enable SMTP authentication
-        $mail->Username   = $correoEmisor;                     //SMTP username
-        $mail->Password   = $ClaveEmail;                               //SMTP password
+        $mail->Username   = 'emzero1@gmail.com';                     //SMTP username
+        $mail->Password   = '';                               //SMTP password
         $mail->SMTPSecure = PHPMailer::ENCRYPTION_SMTPS;            //Enable implicit TLS encryption
         $mail->Port       = 465;                                    //TCP port to connect to; use 587 if you have set `SMTPSecure = PHPMailer::ENCRYPTION_STARTTLS`
 
         //Recipients
-        $mail->setFrom($correoEmisor, 'ODAK');
+        $mail->setFrom('emzero1@gmail.com', 'ODAK');
         $mail->addAddress($correo, $usuario);     //Add a recipient
         // $mail->addAddress('ellen@example.com');               //Name is optional
         // $mail->addReplyTo('info@example.com', 'Information');
@@ -65,8 +63,8 @@ function enviarSeguimiento($correo,$usuario,$seguimiento,$descripcion)
         $mail->isSMTP();                                            //Send using SMTP
         $mail->Host       = 'smtp.gmail.com';                     //Set the SMTP server to send through
         $mail->SMTPAuth   = true;                                   //Enable SMTP authentication
-        $mail->Username   = $correoEmisor;                     //SMTP username
-        $mail->Password   = $ClaveEmail;                               //SMTP password
+        $mail->Username   = 'emzero1@gmail.com';                     //SMTP username
+        $mail->Password   = '';                               //SMTP password
         $mail->SMTPSecure = PHPMailer::ENCRYPTION_SMTPS;            //Enable implicit TLS encryption
         $mail->Port       = 465;                                    //TCP port to connect to; use 587 if you have set `SMTPSecure = PHPMailer::ENCRYPTION_STARTTLS`
 
@@ -85,7 +83,7 @@ function enviarSeguimiento($correo,$usuario,$seguimiento,$descripcion)
         //Content
         $mail->isHTML(true);                                  //Set email format to HTML
         $mail->Subject = 'Solicitud de Cotizacion';
-        $mail->Body    = 'Hola '.$usuario.', haz cotizado lo siente:<br><br>'.$descripcion.'<br><br><br> Tu N° de seguimiento es: '.$seguimiento.'<br><br> Puedes revisar la solicitud en http://localhost:4200/odak';
+        $mail->Body    = 'Hola '.$usuario.', haz cotizado lo siguiente:<br><br>'.$descripcion.'<br><br><br> Tu N° de seguimiento es: '.$seguimiento.'<br><br> Puedes revisar la solicitud en http://localhost:4200/odak';
         $mail->AltBody = 'This is the body in plain text for non-HTML mail clients';
 
         $mail->send();
@@ -106,7 +104,7 @@ function enviarRepuesta($correo,$usuario,$seguimiento,$descripcion)
 
     if ($descripcion=='Aceptada') {
         $titulo = 'ODAK - Solicitud Aceptada';
-        $texto = 'Es grato comnunicarte que tu solicitud ha sido aceptada.';
+        $texto = 'Nos es grato informar que tu solicitud ha sido aceptada.';
         $texto_dos = 'Recuerda revisar tu número de seguimiento en http://localhost:4200/odak/seguimiento';
         $texto_tres = 'Tu N° de seguimiento es: ';
     }
@@ -128,8 +126,8 @@ function enviarRepuesta($correo,$usuario,$seguimiento,$descripcion)
         $mail->isSMTP();                                            //Send using SMTP
         $mail->Host       = 'smtp.gmail.com';                     //Set the SMTP server to send through
         $mail->SMTPAuth   = true;                                   //Enable SMTP authentication
-        $mail->Username   = $correoEmisor;                     //SMTP username
-        $mail->Password   = $ClaveEmail;                               //SMTP password
+        $mail->Username   = 'emzero1@gmail.com';                     //SMTP username
+        $mail->Password   = '';                               //SMTP password
         $mail->SMTPSecure = PHPMailer::ENCRYPTION_SMTPS;            //Enable implicit TLS encryption
         $mail->Port       = 465;                                    //TCP port to connect to; use 587 if you have set `SMTPSecure = PHPMailer::ENCRYPTION_STARTTLS`
 
@@ -148,7 +146,7 @@ function enviarRepuesta($correo,$usuario,$seguimiento,$descripcion)
         //Content
         $mail->isHTML(true);                                  //Set email format to HTML
         $mail->Subject = $titulo;
-        $mail->Body    = 'Hola '.$usuario.'. '.$texto.'<br><br>'.$texto_dos.'<br><br>'.$texto_tres.$seguimiento;
+        $mail->Body    = 'Hola '.$usuario.'. '.$texto.'<br><br>'.$texto_dos.'<br><br>'.$texto_tres.'<b>'.$seguimiento.'</b>';
         $mail->AltBody = 'This is the body in plain text for non-HTML mail clients';
 
         $mail->send();
