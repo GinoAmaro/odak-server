@@ -187,34 +187,34 @@ if (isset($_GET["grillaEmpresa"])) {
                  FROM referencias r,empresa e
                  WHERE ((r.descripcion like '%" . $_GET["grillaEmpresa"] . "%') OR (e.descripcion like '%" . $_GET["grillaEmpresa"] . "%'))
                  GROUP BY e.id;";
-    $sqlodak = mysqli_query($conexionBD, $consulta);
-    if (mysqli_num_rows($sqlodak) > 0) {
-        $empresa = mysqli_fetch_all($sqlodak, MYSQLI_ASSOC);
-        echo json_encode($empresa);
-        exit();
-    } else {
-        echo json_encode(["mensaje" => 'referencias no encontradas']);
-    }
-}
-
-
-if (isset($_GET["agregarReferencia"])) {
-    $data = json_decode(file_get_contents("php://input"));
-    $empresa = $data->empresa;
-    $descripcion = $data->descripcion;
-
-    $sql = "INSERT INTO referencias (empresa,descripcion) VALUES ($empresa,'$descripcion')";
-    $sqlodak = mysqli_query($conexionBD, $sql);
-    if ($sqlodak) {
-        echo json_encode(["mensaje" => 'Referencia Agregada']);
-    } else {
-        echo json_encode(["mensaje" => 'Error en la sintaxis']);
-    }
-}
-
-if (isset($_GET["buscarReferencia"])) {
-    $consulta = "SELECT * FROM referencias WHERE empresa=" . $_GET["buscarReferencia"];
-    $sqlodak = mysqli_query($conexionBD, $consulta);
+                 $sqlodak = mysqli_query($conexionBD, $consulta);
+                 if (mysqli_num_rows($sqlodak) > 0) {
+                     $empresa = mysqli_fetch_all($sqlodak, MYSQLI_ASSOC);
+                     echo json_encode($empresa);
+                     exit();
+                    } else {
+                        echo json_encode(["mensaje" => 'referencias no encontradas']);
+                    }
+                }
+                
+                
+                if (isset($_GET["agregarReferencia"])) {
+                    $data = json_decode(file_get_contents("php://input"));
+                    $empresa = $data->empresa;
+                    $descripcion = $data->descripcion;
+                    
+                    $sql = "INSERT INTO referencias (empresa,descripcion) VALUES ($empresa,'$descripcion')";
+                    $sqlodak = mysqli_query($conexionBD, $sql);
+                    if ($sqlodak) {
+                        echo json_encode(["mensaje" => 'Referencia Agregada']);
+                    } else {
+                        echo json_encode(["mensaje" => 'Error en la sintaxis']);
+                    }
+                }
+                
+                if (isset($_GET["buscarReferencia"])) {
+                    $consulta = "SELECT * FROM referencias WHERE empresa=" . $_GET["buscarReferencia"];
+                    $sqlodak = mysqli_query($conexionBD, $consulta);
     if (mysqli_num_rows($sqlodak) > 0) {
         $empresa = mysqli_fetch_all($sqlodak, MYSQLI_ASSOC);
         echo json_encode($empresa);
@@ -251,10 +251,27 @@ if (isset($_GET["resolverCotizacion"])) {
     $data = json_decode(file_get_contents("php://input"));
     $id = $data->id;
     $decision = $data->decision;
-
+    $fecha = Hora($fecha);
+    
     $desicion = "UPDATE cotizacion SET decision='$decision' WHERE id=$id";
     $sqlodak = mysqli_query($conexionBD, $desicion);
-    if ($sqlodak) {
+    
+    $desicion = "INSERT INTO seguimiento (cotizacion,fecha,descripcion,estado) VALUES ($id,'$fecha','Respuesta Empresa','$decision')";
+    $sqlodak = mysqli_query($conexionBD, $desicion);
+    
+    $consulta = "SELECT correo_cliente,cliente,id,decision FROM cotizacion WHERE id=$id";
+
+    $sqlodakRespuesta = mysqli_query($conexionBD, $consulta);
+    if (mysqli_num_rows($sqlodakRespuesta) > 0) {
+        $respuesta = mysqli_fetch_all($sqlodakRespuesta, MYSQLI_ASSOC);
+        $correo = $respuesta[0]['correo_cliente'];
+        $usuario = $respuesta[0]['cliente'];
+        $seguimiento = $respuesta[0]['id'];
+        $descripcion = $respuesta[0]['decision'];
+        echo enviarRepuesta($correo,$usuario,$seguimiento,$descripcion);
+    }
+
+    if ($decision == 'Aceptada') {
         echo json_encode(["mensaje" => 'Solicitud Aceptada']);
     } else {
         echo json_encode(["mensaje" => 'Solicitud Rechazada']);
