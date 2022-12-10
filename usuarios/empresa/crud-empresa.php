@@ -303,3 +303,4 @@ if (isset($_GET["buscarSeguimiento"])) {
         echo json_encode(["mensaje" => 'Numero de seguimiento no encontrado']);
     }
 }
+
