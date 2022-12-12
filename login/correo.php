@@ -18,15 +18,15 @@ function enviarToken($correo,$token,$usuario)
         //Server settings
         $mail->SMTPDebug = 0;                      //Enable verbose debug output
         $mail->isSMTP();                                            //Send using SMTP
-        $mail->Host       = 'smtp.gmail.com';                     //Set the SMTP server to send through
+        $mail->Host       = 'mail.labtouch.cl';                     //Set the SMTP server to send through
         $mail->SMTPAuth   = true;                                   //Enable SMTP authentication
-        $mail->Username   = 'emzero1@gmail.com';                     //SMTP username
+        $mail->Username   = 'validador@labtouch.cl';                     //SMTP username
         $mail->Password   = '';                               //SMTP password
         $mail->SMTPSecure = PHPMailer::ENCRYPTION_SMTPS;            //Enable implicit TLS encryption
         $mail->Port       = 465;                                    //TCP port to connect to; use 587 if you have set `SMTPSecure = PHPMailer::ENCRYPTION_STARTTLS`
 
         //Recipients
-        $mail->setFrom('emzero1@gmail.com', 'ODAK');
+        $mail->setFrom('validador@labtouch.cl', 'ODAK');
         $mail->addAddress($correo, $usuario);     //Add a recipient
         // $mail->addAddress('ellen@example.com');               //Name is optional
         // $mail->addReplyTo('info@example.com', 'Information');
@@ -61,15 +61,15 @@ function enviarSeguimiento($correo,$usuario,$seguimiento,$descripcion)
         //Server settings
         $mail->SMTPDebug = 0;                      //Enable verbose debug output
         $mail->isSMTP();                                            //Send using SMTP
-        $mail->Host       = 'smtp.gmail.com';                     //Set the SMTP server to send through
+        $mail->Host       = 'mail.labtouch.cl';                     //Set the SMTP server to send through
         $mail->SMTPAuth   = true;                                   //Enable SMTP authentication
-        $mail->Username   = 'emzero1@gmail.com';                     //SMTP username
+        $mail->Username   = 'validador@labtouch.cl';                     //SMTP username
         $mail->Password   = '';                               //SMTP password
         $mail->SMTPSecure = PHPMailer::ENCRYPTION_SMTPS;            //Enable implicit TLS encryption
         $mail->Port       = 465;                                    //TCP port to connect to; use 587 if you have set `SMTPSecure = PHPMailer::ENCRYPTION_STARTTLS`
 
         //Recipients
-        $mail->setFrom('emzero1@gmail.com', 'ODAK');
+        $mail->setFrom('validador@labtouch.cl', 'ODAK');
         $mail->addAddress($correo, $usuario);     //Add a recipient
         // $mail->addAddress('ellen@example.com');               //Name is optional
         // $mail->addReplyTo('info@example.com', 'Information');
@@ -83,7 +83,7 @@ function enviarSeguimiento($correo,$usuario,$seguimiento,$descripcion)
         //Content
         $mail->isHTML(true);                                  //Set email format to HTML
         $mail->Subject = 'Solicitud de Cotizacion';
-        $mail->Body    = 'Hola '.$usuario.', haz cotizado lo siguiente:<br><br>'.$descripcion.'<br><br><br> Tu N° de seguimiento es: '.$seguimiento.'<br><br> Puedes revisar la solicitud en http://localhost:4200/odak';
+        $mail->Body    = 'Hola '.$usuario.', haz cotizado lo siguiente:<br><br>'.$descripcion.'<br><br><br> Tu N° de seguimiento es: '.$seguimiento.'<br><br> Puedes revisar la solicitud en http://localhost:4200/odak/seguimiento';
         $mail->AltBody = 'This is the body in plain text for non-HTML mail clients';
 
         $mail->send();
@@ -124,15 +124,15 @@ function enviarRepuesta($correo,$usuario,$seguimiento,$descripcion)
         //Server settings
         $mail->SMTPDebug = 0;                      //Enable verbose debug output
         $mail->isSMTP();                                            //Send using SMTP
-        $mail->Host       = 'smtp.gmail.com';                     //Set the SMTP server to send through
+        $mail->Host       = 'mail.labtouch.cl';                     //Set the SMTP server to send through
         $mail->SMTPAuth   = true;                                   //Enable SMTP authentication
-        $mail->Username   = 'emzero1@gmail.com';                     //SMTP username
+        $mail->Username   = 'validador@labtouch.cl';                     //SMTP username
         $mail->Password   = '';                               //SMTP password
         $mail->SMTPSecure = PHPMailer::ENCRYPTION_SMTPS;            //Enable implicit TLS encryption
         $mail->Port       = 465;                                    //TCP port to connect to; use 587 if you have set `SMTPSecure = PHPMailer::ENCRYPTION_STARTTLS`
 
         //Recipients
-        $mail->setFrom('emzero1@gmail.com', 'ODAK');
+        $mail->setFrom('validador@labtouch.cl', 'ODAK');
         $mail->addAddress($correo, $usuario);     //Add a recipient
         // $mail->addAddress('ellen@example.com');               //Name is optional
         // $mail->addReplyTo('info@example.com', 'Information');
