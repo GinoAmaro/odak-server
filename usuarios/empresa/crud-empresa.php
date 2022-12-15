@@ -197,7 +197,7 @@ if (isset($_GET["grillaEmpresa"])) {
                     e.telefono as 'telefono', e.correo as 'correo', e.titulo_descripcion as 'titulo_descripcion', e.descripcion as 'descripcion', e.twitter as 'twitter',
                     e.facebook as 'facebook', e.whatsapp as 'whatsapp', e.instagram as 'instagram', e.linkedin as 'linkedin', e.imagen_logo as 'imagen_logo', e.imagen_fondo as 'imagen_fondo'
                  FROM referencias r,empresa e
-                 WHERE (r.empresa=e.id) AND  ((r.descripcion like '%" . $_GET["grillaEmpresa"] . "%') OR (e.descripcion like '%" . $_GET["grillaEmpresa"] . "%'))
+                 WHERE ((r.empresa=e.id) AND  (r.descripcion like '%" . $_GET["grillaEmpresa"] . "%')) OR (e.descripcion like '%" . $_GET["grillaEmpresa"] . "%')
                  GROUP BY e.id;";
                  $sqlodak = mysqli_query($conexionBD, $consulta);
                  if (mysqli_num_rows($sqlodak) > 0) {
