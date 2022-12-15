@@ -130,11 +130,11 @@ if (isset($_GET["cotizarEmpresa"])) {
     $sql = "INSERT INTO cotizacion (empresa,cliente,correo_cliente,telefono_cliente,solicitud_cliente,fecha_solicitud,estado,decision)
             VALUES ($empresa,'$cliente','$correo_cliente','$telefono_cliente','$solicitud_cliente','$fecha',0,'Pendiente')";
     $sqlodak = mysqli_query($conexionBD, $sql);
-    
+
     $sqlseguimiento = "INSERT INTO seguimiento (cotizacion,fecha,descripcion,estado)
                        VALUES ((SELECT MAX(id) FROM cotizacion WHERE empresa=$empresa),'$fecha','Cotización solicitada','Pendiente')";
     $sqlodakSeguimiento = mysqli_query($conexionBD, $sqlseguimiento);
-    
+
     $sqlodakCorreo = mysqli_query($conexionBD, "SELECT c.id as 'id',c.correo_cliente as 'correo_cliente',c.solicitud_cliente as 'solicitud_cliente',c.cliente as 'cliente'
                                                 FROM seguimiento s,cotizacion c
                                                 WHERE (c.id=s.cotizacion) AND cotizacion=(SELECT MAX(id) FROM cotizacion WHERE empresa=$empresa)");
@@ -199,34 +199,34 @@ if (isset($_GET["grillaEmpresa"])) {
                  FROM referencias r,empresa e
                  WHERE ((r.empresa=e.id) AND  (r.descripcion like '%" . $_GET["grillaEmpresa"] . "%')) OR (e.descripcion like '%" . $_GET["grillaEmpresa"] . "%')
                  GROUP BY e.id;";
-                 $sqlodak = mysqli_query($conexionBD, $consulta);
-                 if (mysqli_num_rows($sqlodak) > 0) {
-                     $empresa = mysqli_fetch_all($sqlodak, MYSQLI_ASSOC);
-                     echo json_encode($empresa);
-                     exit();
-                    } else {
-                        echo json_encode(["mensaje" => 'referencias no encontradas']);
-                    }
-                }
-                
-                
-                if (isset($_GET["agregarReferencia"])) {
-                    $data = json_decode(file_get_contents("php://input"));
-                    $empresa = $data->empresa;
-                    $descripcion = $data->descripcion;
-                    
-                    $sql = "INSERT INTO referencias (empresa,descripcion) VALUES ($empresa,'$descripcion')";
-                    $sqlodak = mysqli_query($conexionBD, $sql);
-                    if ($sqlodak) {
-                        echo json_encode(["mensaje" => 'Referencia Agregada']);
-                    } else {
-                        echo json_encode(["mensaje" => 'Error en la sintaxis']);
-                    }
-                }
-                
-                if (isset($_GET["buscarReferencia"])) {
-                    $consulta = "SELECT * FROM referencias WHERE empresa=" . $_GET["buscarReferencia"];
-                    $sqlodak = mysqli_query($conexionBD, $consulta);
+    $sqlodak = mysqli_query($conexionBD, $consulta);
+    if (mysqli_num_rows($sqlodak) > 0) {
+        $empresa = mysqli_fetch_all($sqlodak, MYSQLI_ASSOC);
+        echo json_encode($empresa);
+        exit();
+    } else {
+        echo json_encode(["mensaje" => 'referencias no encontradas']);
+    }
+}
+
+
+if (isset($_GET["agregarReferencia"])) {
+    $data = json_decode(file_get_contents("php://input"));
+    $empresa = $data->empresa;
+    $descripcion = $data->descripcion;
+
+    $sql = "INSERT INTO referencias (empresa,descripcion) VALUES ($empresa,'$descripcion')";
+    $sqlodak = mysqli_query($conexionBD, $sql);
+    if ($sqlodak) {
+        echo json_encode(["mensaje" => 'Referencia Agregada']);
+    } else {
+        echo json_encode(["mensaje" => 'Error en la sintaxis']);
+    }
+}
+
+if (isset($_GET["buscarReferencia"])) {
+    $consulta = "SELECT * FROM referencias WHERE empresa=" . $_GET["buscarReferencia"];
+    $sqlodak = mysqli_query($conexionBD, $consulta);
     if (mysqli_num_rows($sqlodak) > 0) {
         $empresa = mysqli_fetch_all($sqlodak, MYSQLI_ASSOC);
         echo json_encode($empresa);
@@ -279,19 +279,31 @@ if (isset($_GET["resolverCotizacion"])) {
     $decision = $data->decision;
     $colaborador = $data->colaborador;
     $fecha = Hora($fecha);
-    
+
     $desicion = "UPDATE cotizacion SET decision='$decision' WHERE id=$id";
     $sqlodak = mysqli_query($conexionBD, $desicion);
-    
+
     $desicion = "INSERT INTO seguimiento (cotizacion,fecha,descripcion,estado) VALUES ($id,'$fecha','Respuesta Empresa','$decision')";
     $sqlodak = mysqli_query($conexionBD, $desicion);
 
     if ($decision == 'Aceptada') {
         $tarea = "INSERT INTO tareas (cotizacion,descripcion_tarea,fk_categoria,inicio_tarea,fk_prioridad,fk_estado,contenedor_id,usuario_id)
                   VALUES ($id,(SELECT solicitud_cliente FROM cotizacion WHERE id=$id),1,'$fecha',3,1,1,$colaborador)";
-                  $sqlodak = mysqli_query($conexionBD, $tarea);
+        $sqlodak = mysqli_query($conexionBD, $tarea);
+        $enviarTarea = "SELECT u.correo as 'correo',CONCAT(u.nombre,' ',u.apellidos) as 'nombre',e.nombre_fantasia as 'nombre_fantasia',t.descripcion_tarea as 'descripcion_tarea'
+                        FROM tareas t, usuario u, empresa e, cotizacion c
+                        WHERE (t.usuario_id=u.id) AND (t.cotizacion=c.id) AND (c.empresa=e.id) AND (t.usuario_id=$colaborador) AND (c.id=$id)";
+        $sqlodak = mysqli_query($conexionBD, $enviarTarea);
+        if (mysqli_num_rows($sqlodak) > 0) {
+            $Respuestatarea = mysqli_fetch_all($sqlodak, MYSQLI_ASSOC);
+            $correo = $Respuestatarea[0]['correo'];
+            $nombre = $Respuestatarea[0]['nombre'];
+            $nombre_fantasia = $Respuestatarea[0]['nombre_fantasia'];
+            $descripcion_tarea = $Respuestatarea[0]['descripcion_tarea'];
+            enviarTarea($correo, $nombre, $nombre_fantasia, $descripcion_tarea);
+        }
     }
-    
+
     $consulta = "SELECT correo_cliente,cliente,id,decision FROM cotizacion WHERE id=$id";
 
     $sqlodakRespuesta = mysqli_query($conexionBD, $consulta);
@@ -301,7 +313,7 @@ if (isset($_GET["resolverCotizacion"])) {
         $usuario = $respuesta[0]['cliente'];
         $seguimiento = $respuesta[0]['id'];
         $descripcion = $respuesta[0]['decision'];
-        echo enviarRepuesta($correo,$usuario,$seguimiento,$descripcion);
+        echo enviarRepuesta($correo, $usuario, $seguimiento, $descripcion);
     }
 
     if ($decision == 'Aceptada') {
@@ -326,7 +338,7 @@ if (isset($_GET["buscarCotizacion"])) {
 }
 
 if (isset($_GET["buscarSeguimiento"])) {
-    $consulta = "SELECT fecha, descripcion, estado FROM seguimiento WHERE cotizacion=".$_GET["buscarSeguimiento"];
+    $consulta = "SELECT fecha, descripcion, estado FROM seguimiento WHERE cotizacion=" . $_GET["buscarSeguimiento"];
     $sqlodak = mysqli_query($conexionBD, $consulta);
     if (mysqli_num_rows($sqlodak) > 0) {
         $empresa = mysqli_fetch_all($sqlodak, MYSQLI_ASSOC);
@@ -336,4 +348,3 @@ if (isset($_GET["buscarSeguimiento"])) {
         echo json_encode(["mensaje" => 'Numero de seguimiento no encontrado']);
     }
 }
-
